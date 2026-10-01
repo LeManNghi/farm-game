@@ -12,5 +12,8 @@
     "sass-embedded": "^1.105.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
+  },
+  "dependencies": {
+    "phaser": "^4.2.1"
   }
 }
