@@ -1,3 +1,4 @@
+```
 # farm-game
 A top-down 2D farming simulation web game built with Phaser 3, TypeScript, and Vite.
 
@@ -39,3 +40,4 @@ farm-game/
     ├── utils/
     │   └── EventBus.ts     # Hệ thống truyền nhận sự kiện giữa Scenes và Managers
     └── styles/             # Scss cho các trang
+```
