@@ -1,13 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/assets/crops/Plants.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>farm-game</title>
+    <title>Nông Trại Vui Vẻ - Farm Game 2D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="app"></div>
+    <div class="game-wrapper">
+      <header class="game-header">
+        <h1 class="game-title">Nông Trại Vui Vẻ</h1>
+      </header>
+      
+      <main class="game-viewport">
+        <div id="game-container"></div>
+      </main>
+
+      <footer class="game-footer">
+        <div class="control-tags">
+          <span class="key-badge">W A S D</span> hoặc <span class="key-badge">Mũi Tên</span> : Di chuyển 4 hướng
+          <span class="divider">|</span>
+          <span class="key-badge">Giữ Shift</span> : Chạy nhanh
+        </div>
+      </footer>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

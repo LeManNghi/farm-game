@@ -1,0 +1,22 @@
+@use './variables' as *;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: $font-family;
+  background-color: $bg-nature;
+  background-image: 
+    radial-gradient(circle at 50% 20%, rgba(79, 130, 58, 0.25) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(171, 109, 62, 0.15) 0%, transparent 50%);
+  color: $text-light;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  user-select: none;
+}

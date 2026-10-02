@@ -36,5 +36,6 @@ farm-game/
     │   ├── ShopModal.ts    # Cửa sổ mua hạt giống, bán thành phẩm
     │   ├── Hotbar.ts       # Thanh chọn nhanh công cụ/hạt giống đang cầm trên tay
     │   └── FloatingText.ts # Hiển thị số tiền nhảy lên (+10G, -5G)
-    └── utils/
-        └── EventBus.ts     # Hệ thống truyền nhận sự kiện giữa Scenes và Managers
+    ├── utils/
+    │   └── EventBus.ts     # Hệ thống truyền nhận sự kiện giữa Scenes và Managers
+    └── styles/             # Scss cho các trang

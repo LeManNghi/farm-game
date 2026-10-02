@@ -1,0 +1,21 @@
+$primary-green: #4f823a;
+$dark-green: #254222;
+$bg-nature: #1b261b;
+$wood-border: #7c4c2a;
+$wood-light: #ab6d3e;
+$accent-gold: #f4c042;
+$text-light: #f3f7ed;
+$text-dim: #a6c09b;
+$font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+:root {
+  --primary-green: #{$primary-green};
+  --dark-green: #{$dark-green};
+  --bg-nature: #{$bg-nature};
+  --wood-border: #{$wood-border};
+  --wood-light: #{$wood-light};
+  --accent-gold: #{$accent-gold};
+  --text-light: #{$text-light};
+  --text-dim: #{$text-dim};
+  --font-family: #{$font-family};
+}
