@@ -1,7 +1,7 @@
-```
 # farm-game
 A top-down 2D farming simulation web game built with Phaser 3, TypeScript, and Vite.
 
+```
 farm-game/
 ├── index.html
 ├── package.json
