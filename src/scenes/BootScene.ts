@@ -65,6 +65,21 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 48,
       frameHeight: 48,
     });
+
+    // Load hình ảnh nhân vật đang ngủ nhắm mắt
+    this.load.image('character_sleeping', 'assets/characters/character_sleeping.png');
+
+    // Load các mảnh ghép Cổng hoa (Flower Gate)
+    this.load.image('flower_gate_top_left', 'assets/objects/flower_gate_top_left.png');
+    this.load.image('flower_gate_top_right', 'assets/objects/flower_gate_top_right.png');
+    this.load.image('flower_bottom_top_left', 'assets/objects/flower_bottom_top_left.png');
+    this.load.image('flower_bottom_top_right', 'assets/objects/flower_bottom_top_right.png');
+
+    // Load cây trồng cho bãi đất trồng nông trại (Basic Plants)
+    this.load.spritesheet('basic_plants', 'assets/objects/Basic_Plants.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
   }
 
   public create(): void {

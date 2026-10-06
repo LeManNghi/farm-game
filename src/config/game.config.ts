@@ -2,9 +2,9 @@ import Phaser from 'phaser';
 
 export const GAME_SETTINGS = {
   TILE_SIZE: 16,
-  MAP_COLS: 30,
-  MAP_ROWS: 22,
-  PLAYER_SPEED: 100,
+  MAP_COLS: 64,
+  MAP_ROWS: 44,
+  PLAYER_SPEED: 110,
 };
 
 export const createGameConfig = (
@@ -13,11 +13,9 @@ export const createGameConfig = (
   return {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: 480,
-    height: 320,
     pixelArt: true,
     roundPixels: true,
-    backgroundColor: '#3e6f43',
+    backgroundColor: '#243f1f',
     physics: {
       default: 'arcade',
       arcade: {
@@ -26,8 +24,9 @@ export const createGameConfig = (
       },
     },
     scale: {
-      mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
+      mode: Phaser.Scale.RESIZE,
+      width: '100%',
+      height: '100%',
     },
     scene: scenes,
   };

@@ -1,23 +1,18 @@
 @use './variables' as *;
 
-.game-viewport {
-  position: relative;
-  border: 4px solid $wood-light;
-  outline: 4px solid $wood-border;
-  border-radius: 12px;
-  box-shadow: 
-    0 16px 36px rgba(0, 0, 0, 0.6),
-    inset 0 0 10px rgba(0, 0, 0, 0.5);
-  background-color: #2b4926;
+#game-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-#game-container {
-  display: block;
-  line-height: 0;
+  background-color: #243f1f;
 
   canvas {
     image-rendering: -moz-crisp-edges;

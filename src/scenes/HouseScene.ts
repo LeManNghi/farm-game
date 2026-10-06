@@ -19,9 +19,9 @@ export class HouseScene extends Phaser.Scene {
   private promptText!: Phaser.GameObjects.Text;
   private promptContainer!: Phaser.GameObjects.Container;
 
-  // Kích thước phòng 5x4 ô (16x16 px)
-  private readonly ROOM_COLS = 5;
-  private readonly ROOM_ROWS = 4;
+  // Kích thước phòng 9x6 ô (16x16 px) rộng rãi
+  private readonly ROOM_COLS = 9;
+  private readonly ROOM_ROWS = 6;
   private readonly TILE_SIZE = 16;
   private originX = 0;
   private originY = 0;
@@ -43,11 +43,19 @@ export class HouseScene extends Phaser.Scene {
     this.originX = Math.floor((screenW - roomW) / 2);
     this.originY = Math.floor((screenH - roomH) / 2);
 
-    // Camera setup - zoom cao để căn phòng 5x4 hiển thị rõ nét & ấm cúng
+    // Camera setup - zoom 2.4 bao quát toàn bộ căn phòng 9x6 rộng rãi & sắc nét
     this.cameras.main.setBackgroundColor('#141013');
-    this.cameras.main.setZoom(2.8);
+    this.cameras.main.setZoom(2.4);
     this.cameras.main.centerOn(this.originX + roomW / 2, this.originY + roomH / 2);
     this.cameras.main.fadeIn(300, 0, 0, 0);
+
+    // Tự động căn giữa phòng khi cửa sổ trình duyệt thay đổi kích thước
+    this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
+      this.cameras.main.setSize(gameSize.width, gameSize.height);
+      const roomW = this.ROOM_COLS * this.TILE_SIZE;
+      const roomH = this.ROOM_ROWS * this.TILE_SIZE;
+      this.cameras.main.centerOn(this.originX + roomW / 2, this.originY + roomH / 2);
+    });
 
     // Giới hạn thế giới vật lý trong khu vực căn phòng
     this.physics.world.setBounds(
@@ -59,19 +67,15 @@ export class HouseScene extends Phaser.Scene {
 
     this.wallColliders = this.physics.add.staticGroup();
 
-    // 1. Dựng nền và tường phòng theo đúng sơ đồ ghép mảnh người dùng yêu cầu:
-    // Hàng 0: (0,0)#0,   (1,0)#1,   (1,2)#11,  (1,2)#11,  (2,0)#2
-    // Hàng 1: (0,1)#5,   (1,1)#6,   (1,1)#6,   (1,1)#6,   (2,1)#7
-    // Hàng 2: (0,1)#5,   (1,1)#6,   (1,1)#6,   (1,1)#6,   (2,1)#7
-    // Hàng 3: (0,2)#10,  (3,2)#13,  (0,3)#3 (Cửa mở), (3,2)#13, (2,2)#12
+    // 1. Dựng nền và tường phòng 9x6 ô: thêm nhiều ô gạch ở giữa cho phòng rộng rãi
     this.buildHouseInterior();
 
-    // 2. Thêm đồ nội thất theo sơ đồ: Tranh (picture) và Giường (bed)
+    // 2. Thêm đồ nội thất: Giường ngủ, tranh treo tường, đèn bàn, thảm và bàn trà
     this.buildFurniture();
 
-    // 3. Tạo nhân vật người chơi ở vị trí lối vào (cột 2, hàng 2), quay mặt lên
-    const spawnX = this.originX + 2 * this.TILE_SIZE + 8;
-    const spawnY = this.originY + 2 * this.TILE_SIZE + 8;
+    // 3. Tạo nhân vật người chơi ở vị trí lối vào chính giữa phòng (Cột 4, Hàng 4), quay mặt lên
+    const spawnX = this.originX + 4 * this.TILE_SIZE + 8;
+    const spawnY = this.originY + 4 * this.TILE_SIZE + 8;
     this.player = new Player(this, spawnX, spawnY);
     this.player.play('player-idle-up');
     this.player.currentDirection = 'up';
@@ -111,9 +115,9 @@ export class HouseScene extends Phaser.Scene {
     if (this.player) {
       this.player.update();
 
-      // Kiểm tra khi người chơi bước vào cửa thoát ở đáy phòng (Cột 2, Hàng 3)
-      const doorZoneX = this.originX + 2 * this.TILE_SIZE;
-      const doorZoneY = this.originY + 3 * this.TILE_SIZE;
+      // Kiểm tra khi người chơi bước vào cửa thoát ở đáy phòng (Cột 4, Hàng 5)
+      const doorZoneX = this.originX + 4 * this.TILE_SIZE;
+      const doorZoneY = this.originY + 5 * this.TILE_SIZE;
 
       if (
         this.player.x >= doorZoneX + 2 &&
@@ -130,19 +134,23 @@ export class HouseScene extends Phaser.Scene {
   }
 
   /**
-   * Ghép các mảnh tường và sàn nhà từ tilesets/Wooden_House_Walls_Tilset.png và Doors.png
+   * Ghép các mảnh tường và sàn nhà 9x6 từ tilesets/Wooden_House_Walls_Tilset.png và Doors.png
    */
   private buildHouseInterior(): void {
-    // Sơ đồ frame ID từ tilesets/Wooden_House_Walls_Tilset.png (5 cột x 3 hàng)
-    // Giá trị -1 biểu thị ô cửa mở lấy từ Doors.png frame 3 (#3)
+    // Sơ đồ frame ID 9 cột x 6 hàng:
+    // Hàng 0: Tường trên (gỗ ngang phẳng #1)
+    // Hàng 1-4: Tường 2 bên và 7 ô sàn gạch #6 ở giữa cho phòng rộng rãi
+    // Hàng 5: Chân tường dưới (mỗi bên 1 cửa sổ ở giữa #13, 2 ô còn lại là #11), cửa mở ở Cột 4
     const roomLayout: number[][] = [
-      [0, 1, 11, 11, 2],    // Hàng 0: Tường trên
-      [5, 6, 6, 6, 7],      // Hàng 1: Tường trái, sàn gỗ, tường phải
-      [5, 6, 6, 6, 7],      // Hàng 2: Tường trái, sàn gỗ, tường phải
-      [10, 13, -1, 13, 12], // Hàng 3: Tường dưới, cửa thoát ở giữa
+      [0, 1, 1, 1, 1, 1, 1, 1, 2],             // Hàng 0: Tường trên
+      [5, 6, 6, 6, 6, 6, 6, 6, 7],             // Hàng 1: Sàn rộng rãi
+      [5, 6, 6, 6, 6, 6, 6, 6, 7],             // Hàng 2: Sàn rộng rãi
+      [5, 6, 6, 6, 6, 6, 6, 6, 7],             // Hàng 3: Sàn rộng rãi
+      [5, 6, 6, 6, 6, 6, 6, 6, 7],             // Hàng 4: Sàn rộng rãi (hàng gạch cuối)
+      [10, 11, 13, 11, -1, 11, 13, 11, 12],    // Hàng 5: Tường dưới (mỗi bên 1 cửa sổ ở giữa #13, 2 ô còn lại là #11)
     ];
 
-    // Tạo bóng mờ nền bên dưới
+    // Tạo bóng mờ nền bên dưới căn phòng
     const shadowBg = this.add.graphics();
     shadowBg.fillStyle(0x0e0a0d, 0.95);
     shadowBg.fillRoundedRect(
@@ -179,31 +187,35 @@ export class HouseScene extends Phaser.Scene {
         } else {
           const tile = this.add.image(posX, posY, 'house_walls', frameId);
           tile.setOrigin(0, 0);
-          tile.setDepth(1);
+          // Hàng chân tường dưới (Row 5): depth = 12 để che tự nhiên chân nhân vật theo góc nhìn 2.5D khi đứng ở hàng gạch cuối
+          if (row === this.ROOM_ROWS - 1) {
+            tile.setDepth(12);
+          } else {
+            tile.setDepth(1);
+          }
         }
       }
     }
   }
 
   /**
-   * Thêm Tranh (picture) và Giường (bed) theo đúng frame ID và mũi tên chỉ dẫn
+   * Thêm đồ nội thất theo sơ đồ trong căn phòng 9x6 rộng rãi
    */
   private buildFurniture(): void {
-    // 1. Tranh (picture):
-    // Lấy từ objects/Basic_Furniture.png frame (0,0) #0
-    // Treo lên tường trên ở Cột 2 hoặc Cột 3
-    const picX = this.originX + 2 * this.TILE_SIZE;
+    // 1. Tranh (picture): Frame (0,0) #0 từ objects/Basic_Furniture.png treo chính giữa tường trên
+    const picX = this.originX + 4 * this.TILE_SIZE;
     const picY = this.originY + 0 * this.TILE_SIZE;
     const picture = this.add.image(picX, picY, 'furniture', 0);
     picture.setOrigin(0, 0);
     picture.setDepth(3);
 
     // 2. Giường (bed):
+    // Đặt ở góc phòng phía trên bên trái:
     // Đầu giường: frame (2,1) #11 từ objects/Basic_Furniture.png (Hàng 1, Cột 1)
     // Thân giường: frame (2,2) #20 từ objects/Basic_Furniture.png (Hàng 2, Cột 1)
     const bedX = this.originX + 1 * this.TILE_SIZE;
-    const bedTopY = this.originY + 0 * this.TILE_SIZE;
-    const bedBotY = this.originY + 1 * this.TILE_SIZE;
+    const bedTopY = this.originY + 1 * this.TILE_SIZE;
+    const bedBotY = this.originY + 2 * this.TILE_SIZE;
 
     const bedTop = this.add.image(bedX, bedTopY, 'furniture', 11);
     bedTop.setOrigin(0, 0);
@@ -211,41 +223,69 @@ export class HouseScene extends Phaser.Scene {
 
     const bedBot = this.add.image(bedX, bedBotY, 'furniture', 20);
     bedBot.setOrigin(0, 0);
-    bedBot.setDepth(15); // Depth cao hơn để chân người chơi che khi đứng cạnh
+    bedBot.setDepth(15); // Depth cao hơn để che chân khi nằm
 
-    // Đèn ngủ nhỏ cạnh giường ở góc (0,0) cho sinh động
-    const lamp = this.add.image(this.originX + 3 * this.TILE_SIZE, this.originY + 8, 'furniture', 4);
+    // Đèn ngủ nhỏ cạnh giường
+    const lamp = this.add.image(this.originX + 2 * this.TILE_SIZE + 2, this.originY + 1 * this.TILE_SIZE, 'furniture', 4);
     lamp.setOrigin(0, 0);
     lamp.setDepth(4);
+
+    // 3. Thảm trải sàn ấm cúng ở khu vực giữa phòng (Hàng 3, Cột 3-5)
+    const rugLeft = this.add.image(this.originX + 3 * this.TILE_SIZE, this.originY + 3 * this.TILE_SIZE, 'furniture', 48);
+    rugLeft.setOrigin(0, 0);
+    rugLeft.setDepth(2);
+
+    const rugRight = this.add.image(this.originX + 4 * this.TILE_SIZE, this.originY + 3 * this.TILE_SIZE, 'furniture', 49);
+    rugRight.setOrigin(0, 0);
+    rugRight.setDepth(2);
+
+    // 4. Bàn nhỏ và ghế ở góc phải phòng
+    const table = this.add.image(this.originX + 7 * this.TILE_SIZE, this.originY + 2 * this.TILE_SIZE, 'furniture', 21);
+    table.setOrigin(0, 0);
+    table.setDepth(14);
+
+    // Rương chứa đồ ở góc trên bên phải
+    const chest = this.add.image(this.originX + 7 * this.TILE_SIZE, this.originY + 1 * this.TILE_SIZE, 'furniture', 25);
+    chest.setOrigin(0, 0);
+    chest.setDepth(4);
 
     // Ánh sáng vàng ấm nhẹ nhàng phát ra trong phòng
     const ambientLight = this.add.graphics();
     ambientLight.fillStyle(0xffd59e, 0.08);
-    ambientLight.fillCircle(this.originX + 40, this.originY + 32, 45);
+    ambientLight.fillCircle(this.originX + (this.ROOM_COLS * this.TILE_SIZE) / 2, this.originY + (this.ROOM_ROWS * this.TILE_SIZE) / 2, 70);
     ambientLight.setDepth(20);
   }
 
   /**
-   * Tạo các khối va chạm vật lý cho tường và giường ngủ
+   * Tạo các khối va chạm vật lý cho tường và đồ đạc trong phòng 9x6
    */
   private setupCollisions(): void {
-    // Tường trên (Hàng 0): toàn bộ chiều ngang
-    this.createStaticObstacle(this.originX, this.originY, 80, 16);
+    const roomW = this.ROOM_COLS * this.TILE_SIZE;
+    const roomH = this.ROOM_ROWS * this.TILE_SIZE;
 
-    // Tường trái (Cột 0): chiều dọc
-    this.createStaticObstacle(this.originX, this.originY, 16, 64);
+    // 1. Tường trên (Hàng 0): toàn bộ chiều ngang
+    // Chiều cao collider = 24px để chặn hitbox bàn chân ở originY + 24, giữ nhân vật đứng trên sàn Hàng 1
+    // không bị đi xuyên/lên tường trên (Hàng 0)
+    this.createStaticObstacle(this.originX, this.originY, roomW, 24);
 
-    // Tường phải (Cột 4): chiều dọc
-    this.createStaticObstacle(this.originX + 64, this.originY, 16, 64);
+    // 2. Tường trái (Cột 0): chiều dọc
+    this.createStaticObstacle(this.originX, this.originY, 16, roomH + 16);
 
-    // Tường dưới bên trái cửa (Cột 1, Hàng 3)
-    this.createStaticObstacle(this.originX + 16, this.originY + 48, 16, 16);
+    // 3. Tường phải (Cột 8): chiều dọc
+    this.createStaticObstacle(this.originX + 8 * this.TILE_SIZE, this.originY, 16, roomH + 16);
 
-    // Tường dưới bên phải cửa (Cột 3, Hàng 3)
-    this.createStaticObstacle(this.originX + 48, this.originY + 48, 16, 16);
+    // 4. Tường dưới bên trái cửa (Cột 1-3, Hàng 5):
+    // Đặt ở vị trí y = originY + 5 * 16 + 10, height = 12 để người chơi đi xuống đứng thoải mái trên hàng gạch cuối (Hàng 4)
+    this.createStaticObstacle(this.originX + 1 * this.TILE_SIZE, this.originY + 5 * this.TILE_SIZE + 10, 3 * this.TILE_SIZE, 12);
 
-    // Va chạm với Giường ngủ (Cột 1, Hàng 1 và 2)
-    this.createStaticObstacle(this.originX + 16, this.originY + 16, 16, 28);
+    // 5. Tường dưới bên phải cửa (Cột 5-7, Hàng 5):
+    this.createStaticObstacle(this.originX + 5 * this.TILE_SIZE, this.originY + 5 * this.TILE_SIZE + 10, 3 * this.TILE_SIZE, 12);
+
+    // 6. Va chạm với Giường ngủ (Cột 1, Hàng 1 và 2)
+    this.createStaticObstacle(this.originX + 1 * this.TILE_SIZE, this.originY + 1 * this.TILE_SIZE, 16, 32);
+
+    // 7. Va chạm với bàn góc phải
+    this.createStaticObstacle(this.originX + 7 * this.TILE_SIZE, this.originY + 2 * this.TILE_SIZE, 16, 16);
 
     // Áp dụng collider giữa player và toàn bộ tường/vật cản
     this.physics.add.collider(this.player, this.wallColliders);
@@ -254,6 +294,11 @@ export class HouseScene extends Phaser.Scene {
   private createStaticObstacle(x: number, y: number, width: number, height: number): void {
     const obstacle = this.add.zone(x + width / 2, y + height / 2, width, height);
     this.physics.add.existing(obstacle, true);
+    const body = obstacle.body as Phaser.Physics.Arcade.StaticBody;
+    if (body) {
+      body.setSize(width, height);
+      body.updateFromGameObject();
+    }
     this.wallColliders.add(obstacle);
   }
 
@@ -270,16 +315,16 @@ export class HouseScene extends Phaser.Scene {
     const bedY = this.originY + 1.5 * this.TILE_SIZE;
     const distToBed = Phaser.Math.Distance.Between(this.player.x, this.player.y, bedX, bedY);
 
-    const picX = this.originX + 2 * this.TILE_SIZE + 8;
+    const picX = this.originX + 4 * this.TILE_SIZE + 8;
     const picY = this.originY + 8;
     const distToPic = Phaser.Math.Distance.Between(this.player.x, this.player.y, picX, picY);
 
-    if (distToBed < 22) {
+    if (distToBed < 24) {
       this.showPrompt(this.player.x, this.player.y - 20, 'Nhấn [E]: Nghỉ ngơi');
       if (Phaser.Input.Keyboard.JustDown(this.actionKey)) {
         this.sleepInBed();
       }
-    } else if (distToPic < 20) {
+    } else if (distToPic < 22) {
       this.showPrompt(this.player.x, this.player.y - 20, 'Bức tranh phong cảnh');
     } else {
       this.hidePrompt();
@@ -296,18 +341,18 @@ export class HouseScene extends Phaser.Scene {
     // Ngừng di chuyển nhân vật
     (this.player.body as Phaser.Physics.Arcade.Body)?.setVelocity(0, 0);
 
-    // Đè frame thứ nhất (frame 0) của Basic Charakter Spritesheet lên thân giường
+    // Đè hình character_sleeping lên thân giường (Hàng 2, Cột 1)
     const bedCenterX = this.originX + 1 * this.TILE_SIZE + 8;
-    const bedCenterY = this.originY + 1 * this.TILE_SIZE + 3;
+    const bedCenterY = this.originY + 2 * this.TILE_SIZE + 3;
 
     this.player.setPosition(bedCenterX, bedCenterY);
     this.player.anims.stop();
-    this.player.setFrame(0);
+    this.player.setTexture('character_sleeping');
     this.player.setDepth(20); // Đè lên thân giường (thân giường depth 15)
 
-    // Khóa phím thức dậy trong 500ms đầu để không bị phím nhấn lúc ngủ bấm nhầm hủy ngay
+    // Khóa phím thức dậy trong 400ms đầu để không bị phím nhấn lúc ngủ bấm nhầm hủy ngay
     this.canWakeUp = false;
-    this.time.delayedCall(500, () => {
+    this.time.delayedCall(400, () => {
       this.canWakeUp = true;
     });
 
@@ -380,13 +425,14 @@ export class HouseScene extends Phaser.Scene {
       this.sleepZzzText.setVisible(false);
     }
 
-    // Nhân vật bước xuống đứng cạnh giường
+    // Nhân vật bước xuống đứng cạnh giường và hoàn trả lại sprite bình thường
     const bedX = this.originX + 1 * this.TILE_SIZE;
-    const bedBotY = this.originY + 1 * this.TILE_SIZE;
+    const bedBotY = this.originY + 2 * this.TILE_SIZE;
     this.player.setPosition(bedX + 22, bedBotY + 8);
+    this.player.setTexture('character');
     this.player.play('player-idle-down');
     this.player.currentDirection = 'down';
-    this.player.setDepth(this.player.y);
+    this.player.setDepth(10);
   }
 
   private exitHouse(): void {
@@ -404,34 +450,7 @@ export class HouseScene extends Phaser.Scene {
   }
 
   private createInteriorUI(): void {
-    // HUD góc màn hình
-    const hudContainer = this.add.container(10, 10);
-    hudContainer.setScrollFactor(0);
-    hudContainer.setDepth(100);
-
-    const bg = this.add.graphics();
-    bg.fillStyle(0x19141f, 0.85);
-    bg.fillRoundedRect(0, 0, 135, 46, 6);
-    bg.lineStyle(1, 0xb88e5e, 0.8);
-    bg.strokeRoundedRect(0, 0, 135, 46, 6);
-
-    const titleText = this.add.text(8, 6, '🏡 TRONG NHÀ GỖ', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '9px',
-      fontStyle: 'bold',
-      color: '#fbe2a7',
-    });
-
-    const infoText = this.add.text(8, 20, '🚪 Đi xuống cửa để ra ngoài\n [E]: Nghỉ ngơi', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '8px',
-      color: '#e4d3ba',
-      lineSpacing: 2,
-    });
-
-    hudContainer.add([bg, titleText, infoText]);
-
-    // Popup gợi ý tương tác lơ lửng
+    // Popup gợi ý tương tác lơ lửng khi lại gần giường hoặc tranh
     this.promptContainer = this.add.container(0, 0);
     this.promptContainer.setDepth(90);
     this.promptContainer.setVisible(false);

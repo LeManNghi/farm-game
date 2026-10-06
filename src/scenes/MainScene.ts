@@ -12,9 +12,8 @@ export class MainScene extends Phaser.Scene {
   private houseDoorPos = { x: 0, y: 0 };
   private isTransitioning: boolean = false;
   private actionKey!: Phaser.Input.Keyboard.Key;
-  private promptContainer!: Phaser.GameObjects.Container;
-  private promptText!: Phaser.GameObjects.Text;
   private houseColliders!: Phaser.Physics.Arcade.StaticGroup;
+  private gateColliders!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -29,15 +28,18 @@ export class MainScene extends Phaser.Scene {
     // Giới hạn thế giới vật lý
     this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 
-    // 1. Tạo Tilemap tĩnh với 2 tileset: Grass và Tilled Dirt
+    // 1. Tạo Tilemap tĩnh với nền cỏ, bãi đất trồng và cây nông sản
     this.createFarmMap();
 
-    // 2. Tạo căn nhà gỗ ngoại cảnh trên nông trại
+    // 2. Tạo cổng hoa trang trí ngay sau bãi đất trồng
+    this.createFlowerGate();
+
+    // 3. Tạo căn nhà gỗ ngoại cảnh trên nông trại
     this.createHouseExterior();
 
-    // 3. Tạo nhân vật nông dân: Nếu vừa từ trong nhà ra thì xuất hiện ngay trước cửa
-    let spawnX = Math.floor(MAP_COLS / 2) * TILE_SIZE + 8;
-    let spawnY = Math.floor(MAP_ROWS / 2) * TILE_SIZE + 8;
+    // 4. Tạo nhân vật nông dân: Xuất hiện trước bãi đất trồng (hoặc trước cửa nhà nếu vừa đi ra)
+    let spawnX = 32 * TILE_SIZE;
+    let spawnY = 25 * TILE_SIZE;
 
     if (data?.fromHouse) {
       spawnX = this.houseDoorPos.x;
@@ -56,22 +58,29 @@ export class MainScene extends Phaser.Scene {
       this.physics.add.collider(this.player, this.houseColliders);
     }
 
-    // 4. Cấu hình Camera bám theo nông dân
+    // Thiết lập va chạm với 2 chân cột của cổng hoa
+    if (this.gateColliders) {
+      this.physics.add.collider(this.player, this.gateColliders);
+    }
+
+    // 5. Cấu hình Camera bám theo nông dân: Tầm nhìn rộng mở, zoom 2.0 chuẩn pixel art tự nhiên (không bị phóng to quá mức)
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
-    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    this.cameras.main.setZoom(2.2);
+    this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    this.cameras.main.setZoom(2.0);
+
+    // Tự động điều chỉnh khung nhìn camera khi thay đổi kích thước cửa sổ trình duyệt
+    this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
+      this.cameras.main.setSize(gameSize.width, gameSize.height);
+    });
 
     if (data?.fromHouse) {
       this.cameras.main.fadeIn(300, 0, 0, 0);
     }
 
-    // 5. Thiết lập phím tương tác E
+    // 6. Thiết lập phím tương tác E
     if (this.input.keyboard) {
       this.actionKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     }
-
-    // 6. Tạo hiệu ứng chào đón & bảng chỉ dẫn mượt mà
-    this.createControlsUI();
   }
 
   public update(): void {
@@ -84,7 +93,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   /**
-   * Tạo bản đồ nông trại gồm nền cỏ và bãi đất mẫu 10x10 ô
+   * Tạo bản đồ nông trại gồm nền cỏ và bãi đất trồng hoa màu
    */
   private createFarmMap(): void {
     const { TILE_SIZE, MAP_COLS, MAP_ROWS } = GAME_SETTINGS;
@@ -126,28 +135,33 @@ export class MainScene extends Phaser.Scene {
       grassTileset.firstgid + 14,
     ];
 
+    // Vị trí và kích thước bãi đất trồng (gọn gàng 6x5 ô ở giữa bản đồ rộng mở)
+    const plotStartX = 29;
+    const plotStartY = 19;
+    const plotWidth = 6;
+    const plotHeight = 5;
+
     for (let y = 0; y < MAP_ROWS; y++) {
       for (let x = 0; x < MAP_COLS; x++) {
-        // Tránh khu vực trung tâm làm bãi đất
-        const inPlotZone = x >= 10 && x < 20 && y >= 6 && y < 16;
-        if (!inPlotZone && Math.random() < 0.12) {
+        // Tránh khu vực nhà (cột 18-22, hàng 12-13), bãi đất trồng và cổng hoa
+        const inHouseZone = x >= 17 && x <= 23 && y >= 11 && y <= 15;
+        const inPlotZone = x >= plotStartX && x < plotStartX + plotWidth && y >= plotStartY && y < plotStartY + plotHeight;
+        const inGateZone = (x === 31 || x === 32) && (y === 17 || y === 18);
+
+        if (!inHouseZone && !inPlotZone && !inGateZone && Math.random() < 0.12) {
           const randTile = flowerIndices[Math.floor(Math.random() * flowerIndices.length)];
           this.groundLayer.putTileAt(randTile, x, y);
         }
       }
     }
 
-    // Layer 2: Bãi đất xới mẫu 10x10 ô (Farm Plot Layer)
+    // Layer 2: Bãi đất xới trồng trọt (Farm Plot Layer)
     const farmLayer = this.map.createBlankLayer('FarmPlot', dirtTileset, 0, 0);
     if (!farmLayer) return;
     this.farmLayer = farmLayer;
     this.farmLayer.setDepth(1);
 
-    // Tilled Dirt trong Sprout Lands (8x8 tiles 16x16):
-    // Layout 3x3 autotile chuẩn:
-    // [0] Top-Left      [1] Top        [2] Top-Right
-    // [8] Middle-Left   [9] Center     [10] Middle-Right
-    // [16] Bottom-Left  [17] Bottom    [18] Bottom-Right
+    // Layout 3x3 autotile chuẩn của Tilled Dirt trong Sprout Lands:
     const dBase = dirtTileset.firstgid;
     const TL = dBase + 0;
     const T = dBase + 1;
@@ -159,15 +173,10 @@ export class MainScene extends Phaser.Scene {
     const B = dBase + 17;
     const BR = dBase + 18;
 
-    const startX = 10;
-    const startY = 6;
-    const plotWidth = 10;
-    const plotHeight = 10;
-
     for (let row = 0; row < plotHeight; row++) {
       for (let col = 0; col < plotWidth; col++) {
-        const tx = startX + col;
-        const ty = startY + row;
+        const tx = plotStartX + col;
+        const ty = plotStartY + row;
 
         let tileIndex = C;
 
@@ -185,62 +194,53 @@ export class MainScene extends Phaser.Scene {
     }
   }
 
-  private createControlsUI(): void {
-    // Nhãn hướng dẫn hiển thị cố định trên góc màn hình theo camera (UI layer)
-    const hudContainer = this.add.container(10, 10);
-    hudContainer.setScrollFactor(0);
-    hudContainer.setDepth(100);
+  /**
+   * Tạo cổng hoa tuyệt đẹp phía sau bãi đất trồng ở giữa bản đồ
+   */
+  private createFlowerGate(): void {
+    const { TILE_SIZE } = GAME_SETTINGS;
+    const gateCol = 31;
+    const gateRow = 17;
+    const gX = gateCol * TILE_SIZE;
+    const gY = gateRow * TILE_SIZE;
 
-    const bg = this.add.graphics();
-    bg.fillStyle(0x111e14, 0.75);
-    bg.fillRoundedRect(0, 0, 155, 52, 6);
-    bg.lineStyle(1, 0x82b450, 0.8);
-    bg.strokeRoundedRect(0, 0, 155, 52, 6);
+    // 1. Vòm hoa tầng trên (Top Arch):
+    // Đặt depth cao = 1000 để nhân vật luôn NẰM DƯỚI phần TOP của cổng hoa khi đi qua
+    const archLeft = this.add.image(gX, gY, 'flower_gate_top_left').setOrigin(0, 0);
+    const archRight = this.add.image(gX + TILE_SIZE, gY, 'flower_gate_top_right').setOrigin(0, 0);
+    archLeft.setDepth(1000);
+    archRight.setDepth(1000);
 
-    const titleText = this.add.text(8, 6, '🌾 NÔNG TRẠI VUI VẺ', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '10px',
-      fontStyle: 'bold',
-      color: '#e2f7b8',
-    });
+    // 2. Chân cột hoa tầng dưới (Bottom Posts):
+    // Đặt depth = 5 để nhân vật luôn NẰM TRÊN phần BOTTOM của cổng hoa
+    const postLeft = this.add.image(gX, gY + TILE_SIZE, 'flower_bottom_top_left').setOrigin(0, 0);
+    const postRight = this.add.image(gX + TILE_SIZE, gY + TILE_SIZE, 'flower_bottom_top_right').setOrigin(0, 0);
+    postLeft.setDepth(5);
+    postRight.setDepth(5);
 
-    const infoText = this.add.text(8, 22, 'WASD: Di chuyển | Shift: Chạy\n[E] hoặc Đi tới cửa: Vào nhà', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '8.5px',
-      color: '#d0dfce',
-      lineSpacing: 2,
-    });
+    // 3. Vật lý va chạm: Chặn 2 chân cột gỗ, chừa lối đi giữa rộng rãi (~20px) cho nông dân đi qua
+    this.gateColliders = this.physics.add.staticGroup();
 
-    hudContainer.add([bg, titleText, infoText]);
+    // Chân cột trái
+    const leftPostObstacle = this.add.zone(gX + 4, gY + TILE_SIZE + 6, 6, 12);
+    this.physics.add.existing(leftPostObstacle, true);
+    this.gateColliders.add(leftPostObstacle);
 
-    // Popup gợi ý tương tác lơ lửng
-    this.promptContainer = this.add.container(0, 0);
-    this.promptContainer.setDepth(90);
-    this.promptContainer.setVisible(false);
-
-    const promptBg = this.add.graphics();
-    promptBg.fillStyle(0x101018, 0.88);
-    promptBg.fillRoundedRect(-50, -9, 100, 18, 4);
-    promptBg.lineStyle(1, 0xa4d852, 0.9);
-    promptBg.strokeRoundedRect(-50, -9, 100, 18, 4);
-
-    this.promptText = this.add.text(0, 0, '', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '8px',
-      color: '#ffffff',
-    });
-    this.promptText.setOrigin(0.5, 0.5);
-
-    this.promptContainer.add([promptBg, this.promptText]);
+    // Chân cột phải
+    const rightPostObstacle = this.add.zone(gX + TILE_SIZE * 2 - 4, gY + TILE_SIZE + 6, 6, 12);
+    this.physics.add.existing(rightPostObstacle, true);
+    this.gateColliders.add(rightPostObstacle);
   }
+
+
 
   /**
    * Tạo căn nhà gỗ ngoại cảnh trên nông trại theo đúng Blueprint Case A
    */
   private createHouseExterior(): void {
     const { TILE_SIZE } = GAME_SETTINGS;
-    const houseCol = 4;
-    const houseRow = 3;
+    const houseCol = 18;
+    const houseRow = 12;
     const hX = houseCol * TILE_SIZE;
     const hY = houseRow * TILE_SIZE;
 
@@ -253,16 +253,13 @@ export class MainScene extends Phaser.Scene {
       bgTile.setDepth(2);
     });
 
+    const houseBottomY = hY + 2 * TILE_SIZE; // 80px (chân tường căn nhà tiếp đất)
+
     // 1. Hàng tường (Wall row at y = 16):
-    // Col 0: (0,2) #10 từ house_walls
-    // Col 1: (3,2) #13 từ house_walls
-    // Col 2: (0,3) #3 từ doors (cửa ra vào)
-    // Col 3: (3,2) #13 từ house_walls
-    // Col 4: (2,2) #12 từ house_walls
-    this.add.image(hX + 0 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 10).setOrigin(0, 0).setDepth(5);
-    this.add.image(hX + 1 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 13).setOrigin(0, 0).setDepth(5);
-    this.add.image(hX + 3 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 13).setOrigin(0, 0).setDepth(5);
-    this.add.image(hX + 4 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 12).setOrigin(0, 0).setDepth(5);
+    this.add.image(hX + 0 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 10).setOrigin(0, 0).setDepth(houseBottomY);
+    this.add.image(hX + 1 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 13).setOrigin(0, 0).setDepth(houseBottomY);
+    this.add.image(hX + 3 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 13).setOrigin(0, 0).setDepth(houseBottomY);
+    this.add.image(hX + 4 * TILE_SIZE, hY + 1 * TILE_SIZE, 'house_walls', 12).setOrigin(0, 0).setDepth(houseBottomY);
 
     // Cửa ra vào tại Cột 2:
     const doorTileX = hX + 2 * TILE_SIZE;
@@ -270,7 +267,7 @@ export class MainScene extends Phaser.Scene {
 
     this.houseDoorSprite = this.add.sprite(doorTileX, doorTileY, 'doors', 3);
     this.houseDoorSprite.setOrigin(0, 0);
-    this.houseDoorSprite.setDepth(5);
+    this.houseDoorSprite.setDepth(houseBottomY);
 
     this.houseDoorPos = {
       x: doorTileX + TILE_SIZE / 2,
@@ -283,13 +280,13 @@ export class MainScene extends Phaser.Scene {
     roofTopFrames.forEach((frame, c) => {
       const img = this.add.image(hX + c * TILE_SIZE, hY + 0 * TILE_SIZE, 'wooden_house_sheet', frame);
       img.setOrigin(0, 0);
-      img.setDepth(15);
+      img.setDepth(houseBottomY + 5);
     });
 
     // 3. Ống khói (0,4) #28 đè lên ô (5,3) tại Cột 1
     const chimney = this.add.image(hX + 1 * TILE_SIZE, hY - 2, 'wooden_house_sheet', 28);
     chimney.setOrigin(0, 0);
-    chimney.setDepth(16);
+    chimney.setDepth(houseBottomY + 6);
 
     // 4. Mái nhà tầng dưới (Roof eaves row at y = 16) đè lên hàng tường:
     // (4,4) #32, (5,4) #33, (5,4) #33, (5,4) #33, (6,4) #34
@@ -297,7 +294,7 @@ export class MainScene extends Phaser.Scene {
     roofEavesFrames.forEach((frame, c) => {
       const img = this.add.image(hX + c * TILE_SIZE, hY + 1 * TILE_SIZE, 'wooden_house_sheet', frame);
       img.setOrigin(0, 0);
-      img.setDepth(15);
+      img.setDepth(houseBottomY + 5);
     });
 
     // 5. Thiết lập va chạm vật lý để người chơi không đi xuyên qua tường nhà
@@ -329,16 +326,12 @@ export class MainScene extends Phaser.Scene {
     );
 
     if (dist < 20) {
-      this.showPrompt(this.houseDoorPos.x, this.houseDoorPos.y - 18, '[E] Vào nhà');
-
       const enterPressed = Phaser.Input.Keyboard.JustDown(this.actionKey);
-      const isSteppingOnDoor = dist < 10;
+      const isSteppingOnDoor = dist < 12;
 
       if (enterPressed || isSteppingOnDoor) {
         this.enterHouse();
       }
-    } else {
-      this.hidePrompt();
     }
   }
 
@@ -360,17 +353,5 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('HouseScene');
     });
-  }
-
-  private showPrompt(x: number, y: number, message: string): void {
-    this.promptContainer.setPosition(x, y);
-    this.promptText.setText(message);
-    this.promptContainer.setVisible(true);
-  }
-
-  private hidePrompt(): void {
-    if (this.promptContainer) {
-      this.promptContainer.setVisible(false);
-    }
   }
 }
