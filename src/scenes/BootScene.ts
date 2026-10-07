@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { CROP_DEFINITIONS } from '../config/items.config.ts';
+import { gameServices } from '../state/GameServices.ts';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -35,34 +37,45 @@ export class BootScene extends Phaser.Scene {
     });
 
     // Load các tilesets
-    this.load.image('grass', 'assets/tilesets/Grass.png');
-    this.load.image('tilled_dirt', 'assets/tilesets/Tilled Dirt.png');
-    this.load.image('fences', 'assets/tilesets/Fences.png');
-    this.load.image('hills', 'assets/tilesets/Hills.png');
-    this.load.image('water', 'assets/tilesets/Water.png');
-    this.load.image('wooden_house', 'assets/tilesets/Wooden House.png');
+    this.load.image('grass', 'assets/tilesets/grass.png');
+    this.load.image('tilled_dirt', 'assets/tilesets/tilled_dirt.png');
+    this.load.image('fences', 'assets/tilesets/fences.png');
+    this.load.image('hills', 'assets/tilesets/hills.png');
+    this.load.image('water', 'assets/tilesets/water.png');
+    this.load.image('wooden_house', 'assets/tilesets/wooden_house.png');
     this.load.image('farm_tile_dry_wet', 'assets/tilesets/farm_tile_dry_wet.png');
+    this.load.spritesheet('farm_tile_states', 'assets/tilesets/farm_tile_dry_wet.png', {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
+    Object.values(CROP_DEFINITIONS).forEach((crop) => {
+      this.load.spritesheet(crop.textureKey, crop.assetPath, {
+        frameWidth: crop.frameWidth,
+        frameHeight: crop.frameHeight,
+      });
+    });
 
     // Load Spritesheet cấu trúc căn nhà và nội thất từ Sprout Lands
-    this.load.spritesheet('wooden_house_sheet', 'assets/tilesets/Wooden House.png', {
+    this.load.spritesheet('wooden_house_sheet', 'assets/tilesets/wooden_house.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.spritesheet('house_walls', 'assets/tilesets/Wooden_House_Walls_Tilset.png', {
+    this.load.spritesheet('house_walls', 'assets/tilesets/wooden_house_walls_tileset.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.spritesheet('doors', 'assets/tilesets/Doors.png', {
+    this.load.spritesheet('doors', 'assets/tilesets/doors.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.spritesheet('furniture', 'assets/objects/Basic_Furniture.png', {
+    this.load.spritesheet('furniture', 'assets/objects/basic_furniture.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
 
     // Load Spritesheet nhân vật nông dân (192x192 px -> 4x4 frames kích thước 48x48)
-    this.load.spritesheet('character', 'assets/characters/Basic Charakter Spritesheet.png', {
+    this.load.spritesheet('character', 'assets/characters/basic_character_spritesheet.png', {
       frameWidth: 48,
       frameHeight: 48,
     });
@@ -75,15 +88,10 @@ export class BootScene extends Phaser.Scene {
     this.load.image('flower_gate_top_right', 'assets/objects/flower_gate_top_right.png');
     this.load.image('flower_bottom_top_left', 'assets/objects/flower_bottom_top_left.png');
     this.load.image('flower_bottom_top_right', 'assets/objects/flower_bottom_top_right.png');
-
-    // Load cây trồng cho bãi đất trồng nông trại (Basic Plants)
-    this.load.spritesheet('basic_plants', 'assets/objects/Basic_Plants.png', {
-      frameWidth: 16,
-      frameHeight: 16,
-    });
   }
 
   public create(): void {
+    gameServices.loadOnce();
     this.createPlayerAnimations();
     this.createDoorAnimations();
     this.scene.start('MainScene');

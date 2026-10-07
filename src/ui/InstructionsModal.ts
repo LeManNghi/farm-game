@@ -1,6 +1,6 @@
 /**
  * Component Modal hướng dẫn điều khiển game nông trại
- * Hiển thị nút bấm Noti_icon và popup bảng hướng dẫn chi tiết
+ * Hiển thị nút thông báo và popup bảng hướng dẫn chi tiết
  */
 export class InstructionsModal {
   private container: HTMLElement;
@@ -22,7 +22,7 @@ export class InstructionsModal {
     this.notiButton.setAttribute('type', 'button');
     this.notiButton.setAttribute('title', 'Hướng dẫn điều khiển');
     this.notiButton.setAttribute('aria-label', 'Mở hướng dẫn chơi');
-    this.notiButton.innerHTML = `<img src="/assets/ui/Noti_icon.png" class="noti-icon-img" alt="Hướng dẫn" />`;
+    this.notiButton.innerHTML = `<img src="/assets/ui/notification_icon.png" class="noti-icon-img" alt="Hướng dẫn" />`;
 
     // 2. Lớp phủ mờ (Modal Overlay)
     this.overlay = document.createElement('div');
@@ -36,7 +36,7 @@ export class InstructionsModal {
     this.modalCard.innerHTML = `
       <div class="guide-header">
         <div class="guide-title-wrap">
-          <img src="/assets/ui/Noti_icon.png" class="guide-title-icon" alt="icon" />
+          <img src="/assets/ui/notification_icon.png" class="guide-title-icon" alt="icon" />
           <h2 class="guide-title">HƯỚNG DẪN ĐIỀU KHIỂN</h2>
         </div>
         <button class="guide-close-btn" type="button" aria-label="Đóng">&times;</button>
