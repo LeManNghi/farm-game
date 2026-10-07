@@ -41,6 +41,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('hills', 'assets/tilesets/Hills.png');
     this.load.image('water', 'assets/tilesets/Water.png');
     this.load.image('wooden_house', 'assets/tilesets/Wooden House.png');
+    this.load.image('farm_tile_dry_wet', 'assets/tilesets/farm_tile_dry_wet.png');
 
     // Load Spritesheet cấu trúc căn nhà và nội thất từ Sprout Lands
     this.load.spritesheet('wooden_house_sheet', 'assets/tilesets/Wooden House.png', {

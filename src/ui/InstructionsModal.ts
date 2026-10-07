@@ -22,6 +22,7 @@ export class InstructionsModal {
     this.notiButton.setAttribute('type', 'button');
     this.notiButton.setAttribute('title', 'Hướng dẫn điều khiển');
     this.notiButton.setAttribute('aria-label', 'Mở hướng dẫn chơi');
+    this.notiButton.innerHTML = `<img src="/assets/ui/Noti_icon.png" class="noti-icon-img" alt="Hướng dẫn" />`;
 
     // 2. Lớp phủ mờ (Modal Overlay)
     this.overlay = document.createElement('div');

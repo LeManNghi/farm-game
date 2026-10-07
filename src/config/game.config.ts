@@ -4,7 +4,7 @@ export const GAME_SETTINGS = {
   TILE_SIZE: 16,
   MAP_COLS: 64,
   MAP_ROWS: 44,
-  PLAYER_SPEED: 110,
+  PLAYER_SPEED: 70,
 };
 
 export const createGameConfig = (

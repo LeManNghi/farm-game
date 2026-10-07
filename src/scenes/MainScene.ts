@@ -106,9 +106,9 @@ export class MainScene extends Phaser.Scene {
     });
 
     const grassTileset = this.map.addTilesetImage('grass', 'grass', 16, 16);
-    const dirtTileset = this.map.addTilesetImage('tilled_dirt', 'tilled_dirt', 16, 16);
+    const farmTileset = this.map.addTilesetImage('farm_tile_dry_wet', 'farm_tile_dry_wet', 16, 16, 8, 16);
 
-    if (!grassTileset || !dirtTileset) {
+    if (!grassTileset || !farmTileset) {
       console.error('Không thể tải tileset cho bản đồ');
       return;
     }
@@ -156,40 +156,19 @@ export class MainScene extends Phaser.Scene {
     }
 
     // Layer 2: Bãi đất xới trồng trọt (Farm Plot Layer)
-    const farmLayer = this.map.createBlankLayer('FarmPlot', dirtTileset, 0, 0);
+    const farmLayer = this.map.createBlankLayer('FarmPlot', farmTileset, 0, 0);
     if (!farmLayer) return;
     this.farmLayer = farmLayer;
     this.farmLayer.setDepth(1);
 
-    // Layout 3x3 autotile chuẩn của Tilled Dirt trong Sprout Lands:
-    const dBase = dirtTileset.firstgid;
-    const TL = dBase + 0;
-    const T = dBase + 1;
-    const TR = dBase + 2;
-    const ML = dBase + 8;
-    const C = dBase + 9;
-    const MR = dBase + 10;
-    const BL = dBase + 16;
-    const B = dBase + 17;
-    const BR = dBase + 18;
+    // Sử dụng ô đất đầu tiên (dry) trong farm_tile_dry_wet.png
+    const dryTileIndex = farmTileset.firstgid;
 
     for (let row = 0; row < plotHeight; row++) {
       for (let col = 0; col < plotWidth; col++) {
         const tx = plotStartX + col;
         const ty = plotStartY + row;
-
-        let tileIndex = C;
-
-        if (row === 0 && col === 0) tileIndex = TL;
-        else if (row === 0 && col === plotWidth - 1) tileIndex = TR;
-        else if (row === plotHeight - 1 && col === 0) tileIndex = BL;
-        else if (row === plotHeight - 1 && col === plotWidth - 1) tileIndex = BR;
-        else if (row === 0) tileIndex = T;
-        else if (row === plotHeight - 1) tileIndex = B;
-        else if (col === 0) tileIndex = ML;
-        else if (col === plotWidth - 1) tileIndex = MR;
-
-        this.farmLayer.putTileAt(tileIndex, tx, ty);
+        this.farmLayer.putTileAt(dryTileIndex, tx, ty);
       }
     }
   }
