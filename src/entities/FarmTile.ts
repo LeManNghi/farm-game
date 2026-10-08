@@ -22,7 +22,7 @@ export class FarmTile extends Phaser.GameObjects.Sprite {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'farm_tile_states', SOIL_FRAMES.dry);
     scene.add.existing(this);
-    this.setDepth(y - 1);
+    this.setDepth(1);
   }
 
   public get isOccupied(): boolean {
@@ -32,7 +32,7 @@ export class FarmTile extends Phaser.GameObjects.Sprite {
   public plant(cropId: CropId): Crop | null {
     if (this.crop || getCropDefinition(cropId).kind !== 'field') return null;
 
-    const cropBottomY = this.y + this.displayHeight / 2;
+    const cropBottomY = this.y + 8;
     this.crop = new Crop(this.scene, this.x, cropBottomY, cropId);
     return this.crop;
   }

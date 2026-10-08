@@ -64,13 +64,13 @@ export class FarmWorldBuilder {
     }
 
     const farmTiles = new Map<string, FarmTile>();
-    for (let row = 0; row < 2; row += 1) {
-      for (let col = 0; col < 3; col += 1) {
+    for (let row = 0; row < plot.height; row += 1) {
+      for (let col = 0; col < plot.width; col += 1) {
         const id = `${col}:${row}`;
         farmTiles.set(id, new FarmTile(
           this.scene,
-          plot.x * TILE_SIZE + col * 32 + 16,
-          plot.y * TILE_SIZE + row * 32 + 16,
+          (plot.x + col) * TILE_SIZE + TILE_SIZE / 2,
+          (plot.y + row) * TILE_SIZE + TILE_SIZE / 2,
         ));
       }
     }
