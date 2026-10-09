@@ -37,22 +37,22 @@ export class BootScene extends Phaser.Scene {
     });
 
     // Load các tilesets
-    this.load.image('grass', 'assets/tilesets/grass.png');
-    this.load.image('tilled_dirt', 'assets/tilesets/tilled_dirt.png');
-    this.load.image('fences', 'assets/tilesets/fences.png');
-    this.load.image('hills', 'assets/tilesets/hills.png');
-    this.load.image('water', 'assets/tilesets/water.png');
+    this.load.image('grass', 'assets/tilesets/Grass.png');
+    this.load.image('tilled_dirt', 'assets/tilesets/Tilled_Dirt.png');
+    this.load.image('fences', 'assets/tilesets/Fences.png');
+    this.load.image('hills', 'assets/tilesets/Hills.png');
+    this.load.image('water', 'assets/tilesets/Water.png');
     this.load.image('wooden_house', 'assets/tilesets/wooden_house.png');
     this.load.image('farm_tile_dry_wet', 'assets/tilesets/farm_tile_dry_wet.png');
     this.load.spritesheet('farm_tile_states', 'assets/tilesets/farm_tile_dry_wet.png', {
       frameWidth: 32,
       frameHeight: 32,
     });
-    this.load.spritesheet('wood_bridge', 'assets/objects/wood_bridge.png', {
+    this.load.spritesheet('wood_bridge', 'assets/objects/Wood_Bridge.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.spritesheet('paths', 'assets/objects/paths.png', {
+    this.load.spritesheet('paths', 'assets/objects/Paths.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
@@ -78,11 +78,11 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.spritesheet('doors', 'assets/tilesets/doors.png', {
+    this.load.spritesheet('doors', 'assets/tilesets/Doors.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.spritesheet('furniture', 'assets/objects/basic_furniture.png', {
+    this.load.spritesheet('furniture', 'assets/objects/Basic_Furniture.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
