@@ -18,8 +18,6 @@ export class HouseScene extends Phaser.Scene {
     S: Phaser.Input.Keyboard.Key;
     D: Phaser.Input.Keyboard.Key;
   };
-  private promptText!: Phaser.GameObjects.Text;
-  private promptContainer!: Phaser.GameObjects.Container;
 
   // Kích thước phòng 9x6 ô (16x16 px) rộng rãi
   private readonly ROOM_COLS = 9;
@@ -100,9 +98,6 @@ export class HouseScene extends Phaser.Scene {
         D: Phaser.Input.Keyboard.Key;
       };
     }
-
-    // 6. Tạo UI chỉ dẫn & thông báo tương tác
-    this.createInteriorUI();
   }
 
   public update(): void {
@@ -130,17 +125,16 @@ export class HouseScene extends Phaser.Scene {
         return;
       }
 
-      // Kiểm tra tương tác với Giường và Tranh
+      // Kiểm tra tương tác với Giường
       this.checkInteractions();
     }
   }
 
   /**
-   * Tương tác nhấn E cạnh Giường ngủ hoặc Tranh
+   * Tương tác nhấn E cạnh Giường ngủ
    */
   private checkInteractions(): void {
     if (this.isSleeping) {
-      this.hidePrompt();
       return;
     }
 
@@ -148,19 +142,10 @@ export class HouseScene extends Phaser.Scene {
     const bedY = this.originY + 1.5 * this.TILE_SIZE;
     const distToBed = Phaser.Math.Distance.Between(this.player.x, this.player.y, bedX, bedY);
 
-    const picX = this.originX + 4 * this.TILE_SIZE + 8;
-    const picY = this.originY + 8;
-    const distToPic = Phaser.Math.Distance.Between(this.player.x, this.player.y, picX, picY);
-
     if (distToBed < 24) {
-      this.showPrompt(this.player.x, this.player.y - 20, 'Nhấn [E]: Nghỉ ngơi');
       if (Phaser.Input.Keyboard.JustDown(this.actionKey)) {
         this.sleepInBed();
       }
-    } else if (distToPic < 22) {
-      this.showPrompt(this.player.x, this.player.y - 20, 'Bức tranh phong cảnh');
-    } else {
-      this.hidePrompt();
     }
   }
 
@@ -168,9 +153,6 @@ export class HouseScene extends Phaser.Scene {
     if (this.isSleeping) return;
     this.isSleeping = true;
     gameServices.advanceDay();
-
-    // Ẩn bảng chữ nhắc "Nhấn [E]: Nghỉ ngơi"
-    this.hidePrompt();
 
     // Ngừng di chuyển nhân vật
     (this.player.body as Phaser.Physics.Arcade.Body)?.setVelocity(0, 0);
@@ -281,39 +263,5 @@ export class HouseScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('MainScene', { fromHouse: true });
     });
-  }
-
-  private createInteriorUI(): void {
-    // Popup gợi ý tương tác lơ lửng khi lại gần giường hoặc tranh
-    this.promptContainer = this.add.container(0, 0);
-    this.promptContainer.setDepth(90);
-    this.promptContainer.setVisible(false);
-
-    const promptBg = this.add.graphics();
-    promptBg.fillStyle(0x101018, 0.88);
-    promptBg.fillRoundedRect(-55, -9, 110, 18, 4);
-    promptBg.lineStyle(1, 0xffd27d, 0.9);
-    promptBg.strokeRoundedRect(-55, -9, 110, 18, 4);
-
-    this.promptText = this.add.text(0, 0, '', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '8px',
-      color: '#ffffff',
-    });
-    this.promptText.setOrigin(0.5, 0.5);
-
-    this.promptContainer.add([promptBg, this.promptText]);
-  }
-
-  private showPrompt(x: number, y: number, message: string): void {
-    this.promptContainer.setPosition(x, y);
-    this.promptText.setText(message);
-    this.promptContainer.setVisible(true);
-  }
-
-  private hidePrompt(): void {
-    if (this.promptContainer) {
-      this.promptContainer.setVisible(false);
-    }
   }
 }

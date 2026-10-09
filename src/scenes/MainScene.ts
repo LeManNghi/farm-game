@@ -30,8 +30,8 @@ export class MainScene extends Phaser.Scene {
       world.farmTiles.forEach((_tile, id) => gameServices.farm.unregisterTile(id));
     });
 
-    const spawnX = data?.fromHouse ? this.houseDoorPosition.x : 32 * TILE_SIZE;
-    const spawnY = data?.fromHouse ? this.houseDoorPosition.y + 14 : 25 * TILE_SIZE;
+    const spawnX = this.houseDoorPosition.x;
+    const spawnY = data?.fromHouse ? this.houseDoorPosition.y + 14 : this.houseDoorPosition.y + 18;
     this.player = new Player(this, spawnX, spawnY);
 
     if (data?.fromHouse) {
@@ -41,6 +41,7 @@ export class MainScene extends Phaser.Scene {
 
     this.physics.add.collider(this.player, world.houseColliders);
     this.physics.add.collider(this.player, world.gateColliders);
+    this.physics.add.collider(this.player, world.waterColliders);
 
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);

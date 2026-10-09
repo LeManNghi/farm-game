@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 export const GAME_SETTINGS = {
   TILE_SIZE: 16,
   MAP_COLS: 64,
-  MAP_ROWS: 44,
+  MAP_ROWS: 36,
   PLAYER_SPEED: 70,
 };
 
@@ -15,7 +15,7 @@ export const createGameConfig = (
     parent: 'game-container',
     pixelArt: true,
     roundPixels: true,
-    backgroundColor: '#243f1f',
+    backgroundColor: '#9bd4c3',
     physics: {
       default: 'arcade',
       arcade: {

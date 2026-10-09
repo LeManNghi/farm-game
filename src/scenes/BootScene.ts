@@ -48,6 +48,19 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+    this.load.spritesheet('wood_bridge', 'assets/objects/wood_bridge.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+    this.load.spritesheet('paths', 'assets/objects/paths.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+    this.load.image('stall', 'assets/objects/stall.png');
+    this.load.spritesheet('biome_things', 'assets/plants/basic_grass_biome_things.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
 
     Object.values(CROP_DEFINITIONS).forEach((crop) => {
       this.load.spritesheet(crop.textureKey, crop.assetPath, {
